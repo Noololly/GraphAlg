@@ -72,13 +72,9 @@ int depthUnvisitedNode(const graph& g, const std::vector<bool>& visited, const i
 
 std::vector<int> depthFirstSearch(const graph& g, const int start) {
     const int graphSize = g.size();
-    std::vector<bool> visited(graphSize + 1, false);
+    std::vector visited(graphSize + 1, false);
     oStack<int> stack;
-    oQueue<int> queue(graphSize);
     std::vector<int> path;
-    for (int i = 1; i <= graphSize; i++) {
-        visited[i] = false;
-    }
 
     path.push_back(start);
     visited[start] = true;
@@ -96,6 +92,27 @@ std::vector<int> depthFirstSearch(const graph& g, const int start) {
             stack.push(nextNode);
             visited[nextNode] = true;
             path.push_back(nextNode);
+        }
+    }
+    return path;
+}
+
+std::vector<int> breadthFirstSearch(const graph& g, const int start) {
+    const int graphSize = g.size();
+    std::vector visited(graphSize + 1, false);
+    std::vector<int> path;
+    oQueue<int> queue(graphSize);
+    visited[start] = true;
+    path.push_back(start);
+    queue.push(start);
+
+    while (!queue.isEmpty()) {
+        for (const int nextNode = queue.pop(); auto [neighbour, weight] : g.getNeighbours(nextNode)) {
+            if (!visited[neighbour]) {
+                visited[neighbour] = true;
+                queue.push(neighbour);
+                path.push_back(neighbour);
+            }
         }
     }
     return path;
@@ -123,20 +140,19 @@ void algHelper(const graph& g, const int alg) {
         }
         printf("\n");
         printf("Distance: %d", distanceResult);
-    } else if (alg == 1) {
-        const std::vector<int> path = depthFirstSearch(g, start);
+    } else if (alg == 1 || alg == 2) {
+        const std::vector<int> path = alg == 1 ? depthFirstSearch(g, start) : breadthFirstSearch(g, start) ;
         for (size_t i = 0; i < path.size(); i++) {
             printf("%d", path[i]);
             if (i + 1 < path.size()) printf(" -> ");
         }
+        printf("\n");
+
     }
-
-
-
 }
 
 void printMenu() {
-    printf("1. Add vertex to graph\n"
+    printf("\n1. Add vertex to graph\n"
            "2. Add edge\n"
            "3. Remove vertex\n"
            "4. Remove edge\n"
@@ -165,7 +181,7 @@ int main() {
     g.addEdge(2,3,5);
     g.addEdge(2,4,10);
     g.addEdge(3,5,3);
-    g.addEdge(14,5,1);
+    g.addEdge(4,5,1);
 
     bool running = true;
     while (running) {
@@ -214,6 +230,10 @@ int main() {
 
             case 7:
                 algHelper(g, 1);
+                break;
+
+            case 8:
+                algHelper(g, 2);
                 break;
 
             case 9:
