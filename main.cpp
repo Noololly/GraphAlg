@@ -10,7 +10,7 @@
 #include "oPQueue.h"
 #include "oStack.h"
 
-std::vector<int> dijkstra(const graph& g, const int start, const int end) {
+std::vector<int> dijkstra(const graph& g, const int start, const int end, int& distanceResult) {
     const int gSize = g.size();
     std::vector<int> unvisited;
     std::map<int, int> dist;
@@ -36,8 +36,7 @@ std::vector<int> dijkstra(const graph& g, const int start, const int end) {
                 continue;
             }
             if (dist[vertex] != INT_MAX) {
-                int newDist = dist[vertex] + weight;
-                if (newDist < dist[neighbour]) {
+                if (const int newDist = dist[vertex] + weight; newDist < dist[neighbour]) {
                     dist[neighbour] = newDist;
                     prev[neighbour] = vertex;
                 }
@@ -53,24 +52,12 @@ std::vector<int> dijkstra(const graph& g, const int start, const int end) {
     }
     if (cur == start) path.push_back(start);
     std::ranges::reverse(path);
+    distanceResult = dist[end];
     return path;
 }
 
-void dijkstra_helper(const graph& g) {
-    int start, end;
-    printf("Start: ");
-    std::cin >> start;
-    printf("End: ");
-    std::cin >> end;
-    const std::vector<int> path = dijkstra(g, start, end);
-    for (size_t i = 0; i < path.size(); i++) {
-        printf("%d", path[i]);
-        if (i + 1 < path.size()) printf(" -> ");
-    }
-    printf("\n");
-}
 
-int depthUnvisitedNode(const graph& g, const std::vector<int>& visited, const int node) {
+int depthUnvisitedNode(const graph& g, const std::vector<bool>& visited, const int node) {
     if (const auto children = g.getNeighbours(node); children.empty()) {
         return 0;
     } else {
@@ -83,17 +70,17 @@ int depthUnvisitedNode(const graph& g, const std::vector<int>& visited, const in
     return -1;
 }
 
-std::string depthFirstSearch(const graph& g, const int start) {
+std::vector<int> depthFirstSearch(const graph& g, const int start) {
     const int graphSize = g.size();
-    std::vector<int> visited;
+    std::vector<bool> visited(graphSize + 1, false);
     oStack<int> stack;
     oQueue<int> queue(graphSize);
-    std::string path;
+    std::vector<int> path;
     for (int i = 1; i <= graphSize; i++) {
         visited[i] = false;
     }
 
-    path.append(std::to_string(start));
+    path.push_back(start);
     visited[start] = true;
     stack.push(start);
 
@@ -108,10 +95,44 @@ std::string depthFirstSearch(const graph& g, const int start) {
         } else {
             stack.push(nextNode);
             visited[nextNode] = true;
-            path.append(std::to_string(nextNode) + " -> ");
+            path.push_back(nextNode);
         }
     }
     return path;
+}
+
+void algHelper(const graph& g, const int alg) {
+    /* This is a nice function that stops my code from repeating as much.
+     * Alg corresponds to:
+     * 0: Dijkstra
+     * 1: DFS
+     * 2: BFS
+     */
+    int start;
+    printf("Start: ");
+    std::cin >> start;
+    if (alg == 0) {
+        int end;
+        printf("End: ");
+        std::cin >> end;
+        int distanceResult;
+        const std::vector<int> path = dijkstra(g, start, end, distanceResult);
+        for (size_t i = 0; i < path.size(); i++) {
+            printf("%d", path[i]);
+            if (i + 1 < path.size()) printf(" -> ");
+        }
+        printf("\n");
+        printf("Distance: %d", distanceResult);
+    } else if (alg == 1) {
+        const std::vector<int> path = depthFirstSearch(g, start);
+        for (size_t i = 0; i < path.size(); i++) {
+            printf("%d", path[i]);
+            if (i + 1 < path.size()) printf(" -> ");
+        }
+    }
+
+
+
 }
 
 void printMenu() {
@@ -182,11 +203,11 @@ int main() {
                 break;
 
             case 6:
-                dijkstra_helper(g);
+                algHelper(g, 0);
                 break;
 
             case 7:
-                std::cout << depthFirstSearch(g, 1);
+                algHelper(g, 1);
                 break;
 
             case 9:
