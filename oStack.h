@@ -14,6 +14,7 @@ public:
     oStack() = default;
     void push(const T& element);
     T pop();
+    T peek();
     [[nodiscard]] bool isEmpty() const;
     [[nodiscard]] int getSize() const;
 
@@ -38,6 +39,11 @@ T oStack<T>::pop() {
     data.pop_back();
     --elements;
     return value;
+}
+
+template <class T>
+T oStack<T>::peek() {
+    return data.back();
 }
 
 template<class T>

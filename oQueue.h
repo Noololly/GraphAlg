@@ -10,6 +10,7 @@ template<class T>
 class oQueue {
 public:
     explicit oQueue(int size);
+    ~oQueue();
     void push(const T& element);
     T pop();
     [[nodiscard]] bool isEmpty() const;
@@ -29,6 +30,11 @@ oQueue<T>::oQueue(const int size) {
     front = &data[0];
     rear = &data[0];
     count = 0;
+}
+
+template<class T>
+oQueue<T>::~oQueue() {
+    delete [] data; // no memory leaks tyvm
 }
 
 template<class T>

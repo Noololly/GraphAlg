@@ -1,7 +1,10 @@
 #include <algorithm>
 #include <climits>
+#include <iostream>
 #include <map>
+#include <ranges>
 #include <vector>
+#include <string>
 
 #include "graph.h"
 #include "oPQueue.h"
@@ -53,6 +56,76 @@ std::vector<int> dijkstra(const graph& g, const int start, const int end) {
     return path;
 }
 
+void dijkstra_helper(const graph& g) {
+    int start, end;
+    printf("Start: ");
+    std::cin >> start;
+    printf("End: ");
+    std::cin >> end;
+    const std::vector<int> path = dijkstra(g, start, end);
+    for (size_t i = 0; i < path.size(); i++) {
+        printf("%d", path[i]);
+        if (i + 1 < path.size()) printf(" -> ");
+    }
+    printf("\n");
+}
+
+int depthUnvisitedNode(const graph& g, const std::vector<int>& visited, const int node) {
+    if (const auto children = g.getNeighbours(node); children.empty()) {
+        return 0;
+    } else {
+        for (const auto &child: children | std::views::keys) {
+            if (!visited[child]) {
+                return child;
+            }
+        }
+    }
+    return -1;
+}
+
+std::string depthFirstSearch(const graph& g, const int start) {
+    const int graphSize = g.size();
+    std::vector<int> visited;
+    oStack<int> stack;
+    oQueue<int> queue(graphSize);
+    std::string path;
+    for (int i = 1; i <= graphSize; i++) {
+        visited[i] = false;
+    }
+
+    path.append(std::to_string(start));
+    visited[start] = true;
+    stack.push(start);
+
+    int nextNode = start;
+    while (!stack.isEmpty()) {
+        nextNode = depthUnvisitedNode(g, visited, nextNode);
+        if (nextNode == -1) {
+            stack.pop();
+            if (!stack.isEmpty()) {
+                nextNode = stack.peek();
+            } else break;
+        } else {
+            stack.push(nextNode);
+            visited[nextNode] = true;
+            path.append(std::to_string(nextNode) + " -> ");
+        }
+    }
+    return path;
+}
+
+void printMenu() {
+    printf("1. Add vertex to graph\n"
+           "2. Add edge\n"
+           "3. Remove vertex\n"
+           "4. Remove edge\n"
+           "5. Print graph\n"
+           "6. Dijkstra\n"
+           "7. DFS\n"
+           "8. BFS\n"
+           "9. Exit\n");
+}
+
 int main() {
     graph g;
 
@@ -65,16 +138,62 @@ int main() {
     g.addEdge(2,3,5);
     g.addEdge(2,4,10);
     g.addEdge(3,5,3);
-    g.addEdge(4,5,1);
+    g.addEdge(14,5,1);
 
-    //g.printGraph();
+    bool running = true;
+    while (running) {
+        printMenu();
+        int input;
+        std::cin >> input;
+        int start, end, weight, vertex;
+        switch (input) {
+            default:
+                break;
+            case 1: // add vertex
+                printf("Vertex number: ");
+                std::cin >> vertex;
+                g.addVertex(vertex);
+                break;
+            case 2: // add edge
+                printf("Enter start vertex: ");
+                std::cin >> start;
+                printf("Enter end vertex: ");
+                std::cin >> end;
+                printf("Enter weight: ");
+                std::cin >> weight;
+                g.addEdge(start, end, weight);
+                break;
+            case 3: // remove edge
+                printf("Enter start vertex: ");
+                std::cin >> start;
+                printf("Enter end vertex: ");
+                std::cin >> end;
+                g.removeEdge(start, end);
+                break;
 
-    std::vector<int> path = dijkstra(g, 1, 5);
-    for (size_t i = 0; i < path.size(); i++) {
-        printf("%d", path[i]);
-        if (i + 1 < path.size()) printf(" -> ");
+            case 4: // remove vertex
+                printf("Enter vertex to remove: ");
+                std::cin >> vertex;
+                g.removeVertex(vertex);
+                break;
+
+            case 5:
+                g.printGraph();
+                break;
+
+            case 6:
+                dijkstra_helper(g);
+                break;
+
+            case 7:
+                std::cout << depthFirstSearch(g, 1);
+                break;
+
+            case 9:
+                running = false;
+                break;
+        }
     }
-    printf("\n");
 
     return 0;
 }
