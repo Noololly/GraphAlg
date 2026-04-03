@@ -20,8 +20,8 @@ To build this project, you need CMake and other build essentials. If you run win
 ```bash
 mkdir build && cd build
 
-cmake ..
-make
+cmake -G Ninja ..
+ninja build -j 8
 ```
 
 ### Acknowledgements
