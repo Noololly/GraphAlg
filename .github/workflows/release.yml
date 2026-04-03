@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: GraphAlg
+            asset_name: GraphAlg-linux-x86_64
+          - os: windows-latest
+            artifact_name: GraphAlg.exe
+            asset_name: GraphAlg-windows-x86_64.exe
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install CMake (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y cmake g++
+
+      - name: Configure
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Rename artifact (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: mv build/${{ matrix.artifact_name }} ${{ matrix.asset_name }}
+
+      - name: Rename artifact (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          move build\Release\${{ matrix.artifact_name }} ${{ matrix.asset_name }}
+        shell: cmd
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.asset_name }}
