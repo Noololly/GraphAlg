@@ -4,7 +4,10 @@
 #include <map>
 #include <ranges>
 #include <vector>
-#include <string>
+
+#include "SFML/Graphics.hpp"
+
+#include "Graph-ics.h"
 
 #include "graph.h"
 #include "oPQueue.h"
@@ -16,7 +19,7 @@ std::vector<int> dijkstra(const graph& g, const int start, const int end, int& d
     std::map<int, int> dist;
     std::map<int, int> prev;
 
-    for (int i = 1; i <= gSize; i++) {
+    for (int i = 0; i <= gSize; i++) {
         unvisited.push_back(i);
         dist[i] = INT_MAX; // big number
 
@@ -31,7 +34,9 @@ std::vector<int> dijkstra(const graph& g, const int start, const int end, int& d
 
     while (!q.isEmpty()) {
         int vertex = q.pop();
-        for (auto [neighbour, weight] : g.getNeighbours((vertex))) {
+        for (const auto& edge : g.getNeighbours(vertex)) {
+            int neighbour = edge.destination;
+            const int weight = edge.weight;
             if (std::ranges::find(unvisited, neighbour) == unvisited.end()) {
                 continue;
             }
@@ -56,13 +61,12 @@ std::vector<int> dijkstra(const graph& g, const int start, const int end, int& d
     return path;
 }
 
-
 int depthUnvisitedNode(const graph& g, const std::vector<bool>& visited, const int node) {
     if (const auto children = g.getNeighbours(node); children.empty()) {
         return 0;
     } else {
-        for (const auto &child: children | std::views::keys) {
-            if (!visited[child]) {
+        for (const auto& edge : children) {
+            if (const int child = edge.destination; !visited[child]) {
                 return child;
             }
         }
@@ -72,7 +76,7 @@ int depthUnvisitedNode(const graph& g, const std::vector<bool>& visited, const i
 
 std::vector<int> depthFirstSearch(const graph& g, const int start) {
     const int graphSize = g.size();
-    std::vector visited(graphSize + 1, false);
+    std::vector visited(graphSize, false);
     oStack<int> stack;
     std::vector<int> path;
 
@@ -99,7 +103,7 @@ std::vector<int> depthFirstSearch(const graph& g, const int start) {
 
 std::vector<int> breadthFirstSearch(const graph& g, const int start) {
     const int graphSize = g.size();
-    std::vector visited(graphSize + 1, false);
+    std::vector visited(graphSize, false);
     std::vector<int> path;
     oQueue<int> queue(graphSize);
     visited[start] = true;
@@ -107,8 +111,8 @@ std::vector<int> breadthFirstSearch(const graph& g, const int start) {
     queue.push(start);
 
     while (!queue.isEmpty()) {
-        for (const int nextNode = queue.pop(); auto [neighbour, weight] : g.getNeighbours(nextNode)) {
-            if (!visited[neighbour]) {
+        for (const int nextNode = queue.pop(); const auto& edge : g.getNeighbours(nextNode)) {
+            if (int neighbour = edge.destination; !visited[neighbour]) {
                 visited[neighbour] = true;
                 queue.push(neighbour);
                 path.push_back(neighbour);
@@ -164,6 +168,7 @@ void printMenu() {
 }
 
 int main() {
+    constexpr int W = 600, H = 600;
     printf("  ____                 _        _    _           \n"
            " / ___|_ __ __ _ _ __ | |__    / \\  | | __ _ ___ \n"
            "| |  _| '__/ _` | '_ \\| '_ \\  / _ \\ | |/ _` / __|\n"
@@ -172,74 +177,70 @@ int main() {
            "               |_|                    |___/     \n");
     graph g;
 
-    for (int i = 1; i <= 5; i++) {
+    for (int i = 0; i <= 5; i++) {
         g.addVertex(i);
     }
 
-    g.addEdge(1,2,4);
-    g.addEdge(1,3,2);
-    g.addEdge(2,3,5);
-    g.addEdge(2,4,10);
-    g.addEdge(3,5,3);
-    g.addEdge(4,5,1);
+    g.addEdge(0,1,4);
+    g.addEdge(0,2,2);
+    g.addEdge(1,2,5);
+    //g.addEdge(1,3,10);
+    g.addEdge(2,4,3);
+    g.addEdge(3,4,1);
+    g.addEdge(4,5,4);
 
-    bool running = true;
-    while (running) {
-        printMenu();
-        int input;
-        std::cin >> input;
-        int start, end, weight, vertex;
-        switch (input) {
-            default:
-                break;
-            case 1: // add vertex
-                printf("Vertex number: ");
-                std::cin >> vertex;
-                g.addVertex(vertex);
-                break;
-            case 2: // add edge
-                printf("Enter start vertex: ");
-                std::cin >> start;
-                printf("Enter end vertex: ");
-                std::cin >> end;
-                printf("Enter weight: ");
-                std::cin >> weight;
-                g.addEdge(start, end, weight);
-                break;
-            case 3: // remove edge
-                printf("Enter start vertex: ");
-                std::cin >> start;
-                printf("Enter end vertex: ");
-                std::cin >> end;
-                g.removeEdge(start, end);
-                break;
+    sf::RenderWindow window(sf::VideoMode({H, W}), "GraphAlgs");
+    window.setFramerateLimit(60);
+    sf::Font font;
+    const bool hasFont = font.openFromFile("assets/NotoSans.ttf");
 
-            case 4: // remove vertex
-                printf("Enter vertex to remove: ");
-                std::cin >> vertex;
-                g.removeVertex(vertex);
-                break;
+    const std::vector<int> vertices = g.getVertices();
+    std::vector<Node> nodes = convertNode(vertices, window.getSize().x, window.getSize().y);
+    std::vector<Edge> edges = g.getEdges();
 
-            case 5:
-                g.printGraph();
-                break;
+    bool simRunning = true;
 
-            case 6:
-                algHelper(g, 0);
-                break;
-
-            case 7:
-                algHelper(g, 1);
-                break;
-
-            case 8:
-                algHelper(g, 2);
-                break;
-
-            case 9:
-                running = false;
-                break;
+    while (window.isOpen()) {
+        while (const std::optional event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) {
+                window.close();
+            } else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+                if (keyPressed->scancode == sf::Keyboard::Scancode::Space) {
+                    simRunning = !simRunning;
+                }
+            }
         }
+
+        if (simRunning) applyForces(nodes, edges, 8000.f, 0.03f, 150.f, 0.85f);
+
+        for (auto& n : nodes) {
+            constexpr float RADIUS = 20.f;
+            n.x = std::clamp(n.x, RADIUS, W - RADIUS);
+            n.y = std::clamp(n.y, RADIUS, H - RADIUS);
+        }
+
+        window.clear(sf::Color(30, 30, 30));
+
+        for (const auto&[source, destination, weight] : edges) {
+            const sf::Vertex line[] = {
+                sf::Vertex(sf::Vector2f(nodes[source].x, nodes[source].y), sf::Color(150,150,150)),
+                sf::Vertex(sf::Vector2f(nodes[destination].x, nodes[destination].y), sf::Color(150,150,150))
+            };
+            window.draw(line, 2, sf::PrimitiveType::Lines);
+
+            if (hasFont) {
+                float mx = (nodes[source].x + nodes[destination].x) / 2;
+                float my = (nodes[source].y + nodes[destination].y) / 2;
+                sf::Text wt(font, std::to_string(weight), 14);
+                wt.setFillColor(sf::Color::Magenta);
+                wt.setPosition({mx, my});
+                window.draw(wt);
+            }
+        }
+
+
+
+        window.display();
     }
 
     return 0;

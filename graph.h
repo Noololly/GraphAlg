@@ -4,8 +4,14 @@
 
 #ifndef DIJKSTRA2_GRAPH_H
 #define DIJKSTRA2_GRAPH_H
+
 #include <vector>
-#include <unordered_map>
+
+struct Edge {
+    int source;
+    int destination;
+    int weight;
+};
 
 class graph {
 public:
@@ -14,13 +20,14 @@ public:
     void addVertex(int vertex);
     void removeEdge(int source, int destination);
     void removeVertex(int vertex);
-    int size() const;
-    void printGraph() const;
-    std::vector<std::pair<int, int>> getNeighbours(int source) const;
+    [[nodiscard]] int size() const;
+    [[nodiscard]] std::vector<int> getVertices() const;
+    [[nodiscard]] std::vector<Edge> getNeighbours(int source) const;
+    [[nodiscard]] std::vector<Edge> getEdges() const { return edges; }
 
 private:
-    std::unordered_map<int, std::vector<std::pair<int, int>>> m;
-
+    std::vector<Edge> edges;
+    std::vector<int> vertices;
 };
 
 #endif //DIJKSTRA2_GRAPH_H

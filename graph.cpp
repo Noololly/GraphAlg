@@ -3,48 +3,58 @@
 //
 
 #include "graph.h"
-#include <cstdio>
+#include <ranges>
+#include <algorithm>
 
 graph::graph() = default;
 
-void graph::addEdge(int source, int destination, int weight) {
-    m[source].emplace_back(destination, weight);
-    m[destination].emplace_back(source, weight);
+void graph::addEdge(const int source, const int destination, const int weight) {
+    edges.push_back({source, destination, weight});
+    if (std::ranges::find(vertices, source) == vertices.end()) {
+        vertices.push_back(source);
+    }
+    if (std::ranges::find(vertices, destination) == vertices.end()) {
+        vertices.push_back(destination);
+    }
 }
 
 void graph::addVertex(const int vertex) {
-    if (!m.contains(vertex)) {
-        m[vertex] = std::vector<std::pair<int, int>>();
+    if (std::ranges::find(vertices, vertex) == vertices.end()) {
+        vertices.push_back(vertex);
     }
 }
 
 void graph::removeEdge(int source, int destination) {
-    std::erase_if(m[source], [destination](const std::pair<int, int>& p) { return p.first == destination; });
-    std::erase_if(m[destination], [source](const std::pair<int, int>& p) { return p.first == source; });
+    std::erase_if(edges,
+                  [source, destination](const Edge& e) {
+                      return (e.source == source && e.destination == destination) ||
+                             (e.source == destination && e.destination == source);
+                  });
 }
 
-void graph::removeVertex(const int vertex) {
-    m.erase(vertex);
+void graph::removeVertex(int vertex) {
+    std::erase(vertices, vertex);
+    std::erase_if(edges,
+                  [vertex](const Edge& e) {
+                      return e.source == vertex || e.destination == vertex;
+                  });
 }
 
-std::vector<std::pair<int, int>> graph::getNeighbours(const int source) const{
-    if (const auto it = m.find(source); it != m.end()) {
-        return it->second;
+std::vector<Edge> graph::getNeighbours(const int source) const {
+    std::vector<Edge> result;
+    for (const auto& e : edges) {
+        if (e.source == source) {
+            result.push_back(e);
+        }
     }
-    return {};
+    return result;
 }
 
 
 int graph::size() const {
-    return static_cast<int>(m.size()); // cast from size_t to int
+    return static_cast<int>(vertices.size());
 }
 
-void graph::printGraph() const {
-    for (const auto& [fst, snd] : m) {
-        printf("%d -> ", fst);
-        for (const auto&[fir, sec] : snd) {
-            printf("(%d, w=%d) ", fir, sec);
-        }
-        printf("\n");
-    }
+std::vector<int> graph::getVertices() const {
+    return vertices;
 }
