@@ -13,6 +13,8 @@
 #include "oPQueue.h"
 #include "oStack.h"
 
+#define RADIUS 20.f
+
 std::vector<int> dijkstra(const graph& g, const int start, const int end, int& distanceResult) {
     const int gSize = g.size();
     std::vector<int> unvisited;
@@ -214,7 +216,6 @@ int main() {
         if (simRunning) applyForces(nodes, edges, 8000.f, 0.03f, 150.f, 0.85f);
 
         for (auto& n : nodes) {
-            constexpr float RADIUS = 20.f;
             n.x = std::clamp(n.x, RADIUS, W - RADIUS);
             n.y = std::clamp(n.y, RADIUS, H - RADIUS);
         }
@@ -235,6 +236,26 @@ int main() {
                 wt.setFillColor(sf::Color::Magenta);
                 wt.setPosition({mx, my});
                 window.draw(wt);
+            }
+        }
+
+        for (auto& n : nodes) {
+            sf::CircleShape circle (RADIUS);
+            circle.setFillColor(sf::Color(85, 0, 130));
+            circle.setOutlineColor(sf::Color::White);
+            circle.setOutlineThickness(2.f);
+            circle.setOrigin({RADIUS, RADIUS});
+            circle.setPosition({n.x, n.y});
+            window.draw(circle);
+
+            if (hasFont) {
+                sf::Text label(font, std::to_string(n.id), 16);
+                label.setFillColor(sf::Color::White);
+                const sf::Vector2 labelRect = label.getLocalBounds().size;
+
+                label.setOrigin({labelRect.x / 2, labelRect.y / 2});
+                label.setPosition({n.x - 1, n.y - 4});
+                window.draw(label);
             }
         }
 
