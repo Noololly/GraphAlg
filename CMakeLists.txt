@@ -19,7 +19,9 @@ add_executable(GraphAlg main.cpp
         oQueue.h
         oPQueue.h
         Graph-ics.cpp
-        Graph-ics.h)
+        Graph-ics.h
+        algorithms.cpp
+        algorithms.h)
 
 target_compile_features(GraphAlg PRIVATE cxx_std_17)
 target_link_libraries(GraphAlg PRIVATE SFML::Graphics)
