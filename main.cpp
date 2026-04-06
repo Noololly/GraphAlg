@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <sys/stat.h>
 
 #include "SFML/Graphics.hpp"
 
@@ -43,8 +44,9 @@ int main() {
     std::vector<Edge> edges = g.getEdges();
 
     bool simRunning = true;
-    bool nodePressedLastFrame = false;
     float repulsion = 8000.f;
+
+    Node* draggedNode = nullptr;
 
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
@@ -62,30 +64,26 @@ int main() {
         }
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-            Node* selectedNode = nullptr;
             const sf::Vector2i position = sf::Mouse::getPosition(window);
-            float dx = 0.f;
-            float dy = 0.f;
-            for (auto& n : nodes) {
-                dx = static_cast<float>(position.x) - n.x;
-                dy = static_cast<float>(position.y) - n.y;
-                if (const float distance = std::sqrt(dx * dx + dy * dy); distance <= RADIUS + 20) {
-                    selectedNode = &n; // point to node that is clicked on
-                    repulsion = 2000.f; // weak
-                    break;
+
+            if (draggedNode == nullptr) {
+                for (auto& n : nodes) {
+                    const float dx = static_cast<float>(position.x) - n.x;
+                    const float dy = static_cast<float>(position.y) - n.y;
+                    if (std::sqrt(dx * dx + dy * dy) <= RADIUS + 20) {
+                        draggedNode = &n;
+                        break;
+                    }
                 }
             }
-            if (selectedNode != nullptr) {
-                if (nodePressedLastFrame || dx > 0 && dy > 0 && dx < selectedNode->x && dy < selectedNode->y) {
-                    constexpr int xDiff = 0, yDiff = 0;
-                    selectedNode->x = static_cast<float>(position.x) - xDiff;
-                    selectedNode->y = static_cast<float>(position.y) - yDiff;
-                }
-                nodePressedLastFrame = true;
+            if (draggedNode != nullptr) {
+                repulsion = 2000.f;
+                draggedNode->x = static_cast<float>(position.x);
+                draggedNode->y = static_cast<float>(position.y);
             }
         } else {
-            nodePressedLastFrame = false;
-            repulsion = 8000.f; // stronk
+            draggedNode = nullptr;
+            repulsion = 8000.f;
         }
 
         if (simRunning) applyForces(nodes, edges, repulsion, 0.03f, 150.f, 0.85f);
