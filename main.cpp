@@ -4,11 +4,11 @@
 #include <map>
 #include <ranges>
 #include <vector>
+#include <cmath>
 
 #include "SFML/Graphics.hpp"
 
 #include "Graph-ics.h"
-
 #include "graph.h"
 #include "oPQueue.h"
 #include "oStack.h"
@@ -157,16 +157,8 @@ void algHelper(const graph& g, const int alg) {
     }
 }
 
-void printMenu() {
-    printf("\n1. Add vertex to graph\n"
-           "2. Add edge\n"
-           "3. Remove vertex\n"
-           "4. Remove edge\n"
-           "5. Print graph\n"
-           "6. Dijkstra\n"
-           "7. DFS\n"
-           "8. BFS\n"
-           "9. Exit\n");
+void moveNode(sf::Vector2i& mousePos) {
+
 }
 
 int main() {
@@ -186,10 +178,10 @@ int main() {
     g.addEdge(0,1,4);
     g.addEdge(0,2,2);
     g.addEdge(1,2,5);
-    //g.addEdge(1,3,10);
+    g.addEdge(1,3,10);
     g.addEdge(2,4,3);
     g.addEdge(3,4,1);
-    g.addEdge(4,5,4);
+    //g.addEdge(4,5,4);
 
     sf::RenderWindow window(sf::VideoMode({H, W}), "GraphAlgs");
     window.setFramerateLimit(60);
@@ -197,10 +189,12 @@ int main() {
     const bool hasFont = font.openFromFile("assets/NotoSans.ttf");
 
     const std::vector<int> vertices = g.getVertices();
-    std::vector<Node> nodes = convertNode(vertices, window.getSize().x, window.getSize().y);
+    std::vector<Node> nodes = convertNode(vertices, W, H);
     std::vector<Edge> edges = g.getEdges();
 
     bool simRunning = true;
+    bool nodePressedLastFrame = false;
+    float repulsion = 8000.f;
 
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
@@ -209,11 +203,42 @@ int main() {
             } else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
                 if (keyPressed->scancode == sf::Keyboard::Scancode::Space) {
                     simRunning = !simRunning;
+                } else if (keyPressed->scancode == sf::Keyboard::Scancode::R) {
+                    window.clear();
+                    nodes = {};
+                    nodes = convertNode(vertices, W, H); // redraw the nodes
                 }
             }
         }
 
-        if (simRunning) applyForces(nodes, edges, 8000.f, 0.03f, 150.f, 0.85f);
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+            Node* selectedNode = nullptr;
+            const sf::Vector2i position = sf::Mouse::getPosition(window);
+            float dx = 0.f;
+            float dy = 0.f;
+            for (auto& n : nodes) {
+                dx = static_cast<float>(position.x) - n.x;
+                dy = static_cast<float>(position.y) - n.y;
+                if (const float distance = std::sqrt(dx * dx + dy * dy); distance <= RADIUS + 20) {
+                    selectedNode = &n; // point to node that is clicked on
+                    repulsion = 2000.f; // weak
+                    break;
+                }
+            }
+            if (selectedNode != nullptr) {
+                if (nodePressedLastFrame || dx > 0 && dy > 0 && dx < selectedNode->x && dy < selectedNode->y) {
+                    constexpr int xDiff = 0, yDiff = 0;
+                    selectedNode->x = static_cast<float>(position.x) - xDiff;
+                    selectedNode->y = static_cast<float>(position.y) - yDiff;
+                }
+                nodePressedLastFrame = true;
+            }
+        } else {
+            nodePressedLastFrame = false;
+            repulsion = 8000.f; // stronk
+        }
+
+        if (simRunning) applyForces(nodes, edges, repulsion, 0.03f, 150.f, 0.85f);
 
         for (auto& n : nodes) {
             n.x = std::clamp(n.x, RADIUS, W - RADIUS);
