@@ -49,3 +49,5 @@ ninja build -j 8
 ### Acknowledgements
 
 [ascii Art on startup](https://www.asciiart.eu/text-to-ascii-art) 
+
+The only fully AI generated part of the project is the GitHub actions that builds the executable
