@@ -54,3 +54,7 @@ void applyForces(std::vector<Node>& nodes, const std::vector<Edge>& edges, const
         n.vy *= damping;
     }
 }
+
+void drawButtons(sf::Window &window) {
+    
+}
