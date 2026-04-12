@@ -3,7 +3,6 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
-#include <sys/stat.h>
 
 #include "SFML/Graphics.hpp"
 
@@ -42,8 +41,12 @@ int main() {
     const std::vector<int> vertices = g.getVertices();
     std::vector<Node> nodes = convertNode(vertices, W_WINDOW, H_WINDOW); // convert some integers to Nodes, also randomly generate their coordinates
     std::vector<Edge> edges = g.getEdges();
+    std::vector<Button> buttons;
+    createButtons(buttons);
 
     sf::Text statusText(font, "Paused", 30);
+    statusText.setFillColor(sf::Color::White);
+    statusText.setOutlineColor(sf::Color::White);
 
     bool simRunning = true;
     float repulsion = 8000.f;
@@ -57,11 +60,10 @@ int main() {
             } else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
                 if (keyPressed->scancode == sf::Keyboard::Scancode::Space) {
                     simRunning = !simRunning;
-                    statusText.setPosition({W_WINDOW - statusText.getLocalBounds().size.x, H_WINDOW - statusText.getLocalBounds().size.x});
-                    window.draw(statusText);
                 } else if (keyPressed->scancode == sf::Keyboard::Scancode::R) {
                     window.clear();
                     nodes = {};
+                    edges = g.getEdges();
                     nodes = convertNode(vertices, W_WINDOW, H_WINDOW); // redraw the nodes
                 }
             }
@@ -140,6 +142,11 @@ int main() {
         }
 
 
+        if (hasFont && !simRunning) {
+            statusText.setPosition({static_cast<float>(window.getSize().x) - statusText.getLocalBounds().size.x - 10, static_cast<float>(window.getSize().y) - statusText.getLocalBounds().size.y - 20});
+            window.draw(statusText);
+        }
+        drawButtons(window, buttons, font);
 
         window.display();
     }

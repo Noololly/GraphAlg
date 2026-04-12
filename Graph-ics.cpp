@@ -55,6 +55,29 @@ void applyForces(std::vector<Node>& nodes, const std::vector<Edge>& edges, const
     }
 }
 
-void drawButtons(sf::Window &window) {
-    
+void drawButtons(sf::RenderWindow& window, const std::vector<Button>& buttons, const sf::Font& font) {
+    for (const auto& button : buttons) {
+        sf::RectangleShape buttonRect({static_cast<float>(button.w), static_cast<float>(button.h)});
+        buttonRect.setPosition({static_cast<float>(button.x), static_cast<float>(button.y)});
+        buttonRect.setFillColor(sf::Color(203, 166, 247));
+        window.draw(buttonRect);
+
+        sf::Text label(font, button.text, 14);
+        label.setFillColor(sf::Color::White);
+
+        const sf::Vector2 labelRect = label.getLocalBounds().size;
+        label.setOrigin({labelRect.x / 2, labelRect.y / 2});
+
+        const sf::Vector2 buttonCentre = {buttonRect.getPosition().x + (buttonRect.getLocalBounds().size.x / 2), buttonRect.getPosition().y + (buttonRect.getLocalBounds().size.y / 2)};
+        label.setPosition(buttonCentre);
+        window.draw(label);
+    }
+}
+
+void createButtons(std::vector<Button> &buttons) {
+    int i = 0;
+    for (const auto& coord : coords) {
+        buttons.push_back(Button(coord.x, coord.y, 100, 80, labels[i]));
+        i++;
+    }
 }
