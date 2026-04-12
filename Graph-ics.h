@@ -7,6 +7,7 @@
 
 #include "graph.h"
 #include <SFML/Graphics.hpp>
+#include <utility>
 
 struct Node {
     float x,y, vx, vy;
@@ -14,9 +15,9 @@ struct Node {
 };
 
 struct Button {
-    int x, y, w, h;
+    int id, x, y, w, h;
     sf::String text;
-    Button(const int x, const int y, const int w, const int h, const sf::String& text) : x(x), y(y), w(w), h(h), text(text){}
+    Button(const int id, const int x, const int y, const int w, const int h, sf::String  text) : id(id), x(x), y(y), w(w), h(h), text(std::move(text)){}
 };
 
 inline std::vector<sf::Vector2i> coords = {

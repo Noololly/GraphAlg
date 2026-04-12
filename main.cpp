@@ -11,6 +11,36 @@
 
 #define RADIUS 20.f
 
+void actionClick(const Button* button) {
+    switch (const int id = button->id) {
+        case 0:
+            //add edge
+            break;
+        case 1:
+            //add node
+            break;
+        case 2:
+            //remove edge
+            break;
+        case 3:
+            //remove node
+            break;
+        case 4:
+            //dijkstra
+            break;
+        case 5:
+            //BFS
+            break;
+        case 6:
+            //DFS
+        case 7:
+            std::exit(0);
+        default:
+            // lmao I have no idea why this case would ever be needed
+            break;
+    }
+}
+
 int main() {
     constexpr int W_WINDOW = 600, H_WINDOW = 600;
     printf("  ____                 _        _    _           \n"
@@ -52,6 +82,7 @@ int main() {
     float repulsion = 8000.f;
 
     Node* draggedNode = nullptr;
+    Button* clickedButton =  nullptr;
 
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
@@ -72,25 +103,40 @@ int main() {
         if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
             const sf::Vector2i position = sf::Mouse::getPosition(window);
 
-            if (draggedNode == nullptr) {
-                for (auto& n : nodes) {
-                    const float dx = static_cast<float>(position.x) - n.x;
-                    const float dy = static_cast<float>(position.y) - n.y;
-                    if (std::sqrt(dx * dx + dy * dy) <= RADIUS + 20) { // calculate if mouse pointer is within 20 px of the edge of a node
-                        draggedNode = &n; // lock onto the pointer
+            if (position.y < 600) {
+                if (draggedNode == nullptr) {
+                    for (auto& n : nodes) {
+                        const float dx = static_cast<float>(position.x) - n.x;
+                        const float dy = static_cast<float>(position.y) - n.y;
+                        if (std::sqrt(dx * dx + dy * dy) <= RADIUS + 20) { // calculate if mouse pointer is within 20 px of the edge of a node
+                            draggedNode = &n; // lock onto the pointer
+                            break;
+                        }
+                    }
+                }
+                if (draggedNode != nullptr) {
+                    repulsion = 2000.f;
+                    // move the node
+                    draggedNode->x = static_cast<float>(position.x);
+                    draggedNode->y = static_cast<float>(position.y);
+                }
+            } else {
+                for (auto& b : buttons) {
+                    if (b.x < position.x && position.x < (b.x + b.w)
+                        && b.y < position.y && position.y < (b.y + b.h)) {
+                        clickedButton = &b;
                         break;
                     }
                 }
             }
-            if (draggedNode != nullptr) {
-                repulsion = 2000.f;
-                // move the node
-                draggedNode->x = static_cast<float>(position.x);
-                draggedNode->y = static_cast<float>(position.y);
-            }
         } else {
             draggedNode = nullptr; // detach from the node
             repulsion = 8000.f;
+        }
+
+        if (clickedButton != nullptr) {
+            actionClick(clickedButton);
+            clickedButton = nullptr; //after we deal with the click, "release" the button
         }
 
         if (simRunning) applyForces(nodes, edges, repulsion, 0.03f, 150.f, 0.85f);

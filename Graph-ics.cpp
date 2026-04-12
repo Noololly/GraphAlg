@@ -77,7 +77,7 @@ void drawButtons(sf::RenderWindow& window, const std::vector<Button>& buttons, c
 void createButtons(std::vector<Button> &buttons) {
     int i = 0;
     for (const auto& coord : coords) {
-        buttons.push_back(Button(coord.x, coord.y, 100, 80, labels[i]));
+        buttons.emplace_back(i, coord.x, coord.y, 100, 80, labels[i]);
         i++;
     }
 }
