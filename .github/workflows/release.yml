@@ -30,7 +30,12 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y cmake g++ libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev
+          sudo apt-get install -y cmake g++ \
+            libx11-dev libxrandr-dev libxcursor-dev libxi-dev \
+            libudev-dev libgl1-mesa-dev \
+            libfreetype-dev \
+            libopenal-dev libvorbis-dev libflac-dev \
+            libxinerama-dev libxfixes-dev
 
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release
