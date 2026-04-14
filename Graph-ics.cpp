@@ -9,7 +9,7 @@
 
 #define RADIUS 20.f;
 
-std::vector<Node> convertNode(const std::vector<int>& vertices, const u_int dx, const u_int dy) {
+std::vector<Node> convertNode(const std::vector<int>& vertices, const unsigned int dx, const unsigned int dy) {
     std::vector<Node> nodes;
     std::mt19937 rng(std::random_device{}());
     std::uniform_real_distribution<float> rx(0, static_cast<float>(dx));

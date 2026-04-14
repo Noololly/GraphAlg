@@ -21,7 +21,7 @@ inline std::vector<sf::Vector2i> coords = {
 inline std::vector<sf::String> labels = {"Add Edge", "Add Node", "Remove Edge", "Remove Node",
     "Dijkstra", "Breadth\nFirst\nSearch", "Depth\nFirst\nSearch", "Exit"};
 
-std::vector<Node> convertNode(const std::vector<int>& vertices, u_int dx, u_int dy);
+std::vector<Node> convertNode(const std::vector<int>& vertices, unsigned int dx, unsigned int dy);
 int nodeIndex(const std::vector<Node>& nodes, int id);
 void applyForces(std::vector<Node>& nodes, const std::vector<Edge>& edges, float repulsion,
     float springK, float springLenMultiplier, float damping);
