@@ -10,6 +10,7 @@ graph::graph() = default;
 
 void graph::addEdge(const int source, const int destination, const int weight) {
     edges.push_back({source, destination, weight});
+    edges.push_back({destination, source, weight});
     if (std::ranges::find(vertices, source) == vertices.end()) {
         vertices.push_back(source);
     }

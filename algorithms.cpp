@@ -6,47 +6,43 @@
 
 #include <algorithm>
 #include <climits>
-#include <iostream>
 #include <map>
 #include <ranges>
+#include <sstream>
 
 #include "oPQueue.h"
 #include "oQueue.h"
 #include "oStack.h"
 #include "text-window.h"
 
-void algHelper(const graph& g, const int alg) {
-    /* This is a nice function that stops my code from repeating as much.
-     * Alg corresponds to:
-     * 0: Dijkstra
-     * 1: DFS
-     * 2: BFS
-     */
+std::string algHelper(const graph& graph, const Algorithm algorithm) {
+    /* This is a nice function that stops my code from repeating as much. */
     const int start = entryWindow(entryType::Start);
     if (!start) {
-        return;
+        return "";
     }
-    if (alg == 0) {
-        int end;
-        printf("End: ");
-        std::cin >> end;
+    std::ostringstream out;
+    if (algorithm == Dijkstra) {
+        const int end = entryWindow(entryType::End);
         int distanceResult;
-        const std::vector<int> path = dijkstra(g, start, end, distanceResult);
-        for (size_t i = 0; i < path.size(); i++) {
-            printf("%d", path[i]);
-            if (i + 1 < path.size()) printf(" -> ");
+        const std::vector<int> path = dijkstra(graph, start, end, distanceResult);
+        if (path.empty() || distanceResult == INT_MAX) {
+            out << "No path found.";
+        } else {
+            for (size_t i = 0; i < path.size(); i++) {
+                out << path[i];
+                if (i + 1 < path.size()) out << " -> ";
+            }
+            out << "\nDistance: " << distanceResult;
         }
-        printf("\n");
-        printf("Distance: %d", distanceResult);
-    } else if (alg == 1 || alg == 2) {
-        const std::vector<int> path = alg == 1 ? depthFirstSearch(g, start) : breadthFirstSearch(g, start) ;
+    } else if (algorithm == BFS || algorithm == DFS) {
+        const std::vector<int> path = algorithm == DFS ? depthFirstSearch(graph, start) : breadthFirstSearch(graph, start) ;
         for (size_t i = 0; i < path.size(); i++) {
-            printf("%d", path[i]);
-            if (i + 1 < path.size()) printf(" -> ");
+            out << path[i];
+            if (i + 1 < path.size()) out << " -> ";
         }
-        printf("\n");
-
     }
+    return out.str();
 }
 
 std::vector<int> breadthFirstSearch(const graph& g, const int start) {
@@ -98,37 +94,32 @@ std::vector<int> depthFirstSearch(const graph& g, const int start) {
 }
 
 std::vector<int> dijkstra(const graph& g, const int start, const int end, int& distanceResult) {
-    const int gSize = g.size();
-    std::vector<int> unvisited;
+    std::vector<int> unvisited = g.getVertices();
     std::map<int, int> dist;
     std::map<int, int> prev;
 
-    for (int i = 0; i <= gSize; i++) {
-        unvisited.push_back(i);
-        dist[i] = INT_MAX; // big number
-
+    for (int v : unvisited) {
+        dist[v] = INT_MAX;
     }
-
     dist[start] = 0;
 
-    oPQueue<int> q(gSize);
-    for (auto vertex : unvisited) {
-        q.push(vertex);
-    }
+    while (!unvisited.empty()) {
+        // pick the unvisited vertex with smallest distance
+        int vertex = unvisited[0];
+        for (int v : unvisited) {
+            if (dist[v] < dist[vertex]) vertex = v;
+        }
+        if (dist[vertex] == INT_MAX) break;
 
-    while (!q.isEmpty()) {
-        int vertex = q.pop();
         for (const auto& edge : g.getNeighbours(vertex)) {
             int neighbour = edge.destination;
             const int weight = edge.weight;
             if (std::ranges::find(unvisited, neighbour) == unvisited.end()) {
                 continue;
             }
-            if (dist[vertex] != INT_MAX) {
-                if (const int newDist = dist[vertex] + weight; newDist < dist[neighbour]) {
-                    dist[neighbour] = newDist;
-                    prev[neighbour] = vertex;
-                }
+            if (const int newDist = dist[vertex] + weight; newDist < dist[neighbour]) {
+                dist[neighbour] = newDist;
+                prev[neighbour] = vertex;
             }
         }
         unvisited.erase(std::ranges::remove(unvisited, vertex).begin(), unvisited.end());
@@ -147,7 +138,7 @@ std::vector<int> dijkstra(const graph& g, const int start, const int end, int& d
 
 int depthUnvisitedNode(const graph& g, const std::vector<bool>& visited, const int node) {
     if (const auto children = g.getNeighbours(node); children.empty()) {
-        return 0;
+        return -1;
     } else {
         for (const auto& edge : children) {
             if (const int child = edge.destination; !visited[child]) {

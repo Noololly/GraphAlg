@@ -21,7 +21,7 @@ std::vector<Node> convertNode(const std::vector<int>& vertices, const u_int dx, 
     return nodes;
 }
 
-int nodeIndex(const std::vector<Node>& nodes, int id) {
+int nodeIndex(const std::vector<Node>& nodes, const int id) {
     for (int i = 0; i < static_cast<int>(nodes.size()); i++) {
         if (nodes[i].id == id) return i;
     }
@@ -79,7 +79,7 @@ void drawButtons(sf::RenderWindow& window, const std::vector<Button>& buttons, c
         const sf::Vector2 labelRect = label.getLocalBounds().size;
         label.setOrigin({labelRect.x / 2, labelRect.y / 2});
 
-        const sf::Vector2 buttonCentre = {buttonRect.getPosition().x + (buttonRect.getLocalBounds().size.x / 2), buttonRect.getPosition().y + (buttonRect.getLocalBounds().size.y / 2)};
+        const sf::Vector2 buttonCentre = {buttonRect.getPosition().x + buttonRect.getLocalBounds().size.x / 2, buttonRect.getPosition().y + buttonRect.getLocalBounds().size.y / 2};
         label.setPosition(buttonCentre);
         window.draw(label);
     }

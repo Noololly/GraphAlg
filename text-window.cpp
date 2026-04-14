@@ -35,10 +35,10 @@ int entryWindow(const entryType entry) {
     std::string keyword;
     switch (entry) {
         case entryType::Start:
-            keyword = "start";
+            keyword = "start node";
             break;
         case entryType::End:
-            keyword = "end";
+            keyword = "end node";
             break;
         case entryType::Weight:
             keyword = "weight";
@@ -48,7 +48,7 @@ int entryWindow(const entryType entry) {
             break;
     }
 
-    const std::string instructionString = std::format("Enter {} node", keyword);
+    const std::string instructionString = std::format("Enter {}", keyword);
     sf::Text instructionText(font, instructionString, 16);
     instructionText.setFillColor(sf::Color::White);
     instructionText.setOrigin({instructionText.getLocalBounds().size.x / 2, instructionText.getLocalBounds().size.y / 2});
@@ -58,7 +58,8 @@ int entryWindow(const entryType entry) {
         while (const std::optional event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
                 return -1;
-            } else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+            }
+            if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
                 const auto code = keyPressed->code;
 
                 const bool isNumber = code >= sf::Keyboard::Key::Num0 &&
@@ -84,8 +85,8 @@ int entryWindow(const entryType entry) {
             const sf::Vector2i position = sf::Mouse::getPosition(window);
 
             for (auto& b : buttons) {
-                if (b.x < position.x && position.x < (b.x + b.w)
-                        && b.y < position.y && position.y < (b.y + b.h)) {
+                if (b.x < position.x && position.x < b.x + b.w
+                        && b.y < position.y && position.y < b.y + b.h) {
                     clickedButton = &b;
                     break;
                 }
@@ -99,9 +100,8 @@ int entryWindow(const entryType entry) {
             if (clickedButton->id == 1) {
                 if (!entryString.empty()) {
                     return std::stoi(entryString); // OK button pressed
-                } else {
-                    return -2;
                 }
+                    return -2;
             }
         }
 

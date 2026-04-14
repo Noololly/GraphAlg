@@ -4,6 +4,7 @@
 #include <vector>
 #include <cmath>
 
+#include "algorithms.h"
 #include "SFML/Graphics.hpp"
 
 #include "Graph-ics.h"
@@ -12,7 +13,7 @@
 
 #define RADIUS 20.f
 
-void actionClick(const Button* button, graph& graph) {
+void actionClick(const Button* button, graph& graph, std::string& pathString) {
     int start, end, weight, vertex;
     switch (button->id) {
         case 0:
@@ -42,13 +43,13 @@ void actionClick(const Button* button, graph& graph) {
             graph.removeVertex(vertex);
             break;
         case 4:
-            //dijkstra
+            pathString = algHelper(graph, Dijkstra);
             break;
         case 5:
-            //BFS
+            pathString = algHelper(graph, BFS);
             break;
         case 6:
-            //DFS
+            pathString = algHelper(graph, DFS);
             break;
         case 7:
             std::exit(0);
@@ -78,7 +79,7 @@ int main() {
     g.addEdge(1,3,10);
     g.addEdge(2,4,3);
     g.addEdge(3,4,1);
-    //g.addEdge(4,5,4);
+    g.addEdge(4,5,4);
 
     sf::RenderWindow window(sf::VideoMode({W_WINDOW, H_WINDOW + 200}), "GraphAlgs");
     window.setFramerateLimit(60);
@@ -100,7 +101,16 @@ int main() {
     Node* draggedNode = nullptr;
     const Button* clickedButton = nullptr;
 
+    std::string pathString;
+
     while (window.isOpen()) {
+        // Detect if pathString is long move text up
+        float pathTextY = 575.f;
+        if (hasFont && !pathString.empty()) {
+            if (pathString.length() > 40 || std::ranges::count(pathString, '\n') >= 1) {
+                pathTextY = 540.f; // Move up if long
+            }
+        }
         while (const std::optional event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
                 window.close();
@@ -136,10 +146,10 @@ int main() {
                     draggedNode->x = static_cast<float>(position.x);
                     draggedNode->y = static_cast<float>(position.y);
                 }
-            } else {
+            } else if (draggedNode == nullptr) {
                 for (auto& b : buttons) {
-                    if (b.x < position.x && position.x < (b.x + b.w)
-                        && b.y < position.y && position.y < (b.y + b.h)) {
+                    if (b.x < position.x && position.x < b.x + b.w
+                        && b.y < position.y && position.y < b.y + b.h) {
                         clickedButton = &b;
                         break;
                     }
@@ -151,7 +161,8 @@ int main() {
         }
 
         if (clickedButton != nullptr) {
-            actionClick(clickedButton, g);
+            actionClick(clickedButton, g, pathString);
+
             clickedButton = nullptr; //after we deal with the click, "release" the button
             edges = g.getEdges();
             nodes = convertNode(g.getVertices(), W_WINDOW, H_WINDOW);
@@ -208,6 +219,13 @@ int main() {
             }
         }
 
+
+        if (hasFont && !pathString.empty()) {
+            sf::Text pathText(font, pathString, 16);
+            pathText.setFillColor(sf::Color::White);
+            pathText.setPosition({10.f, pathTextY});
+            window.draw(pathText);
+        }
 
         if (hasFont && !simRunning) {
             statusText.setPosition({static_cast<float>(window.getSize().x) - statusText.getLocalBounds().size.x - 10, static_cast<float>(window.getSize().y) - statusText.getLocalBounds().size.y - 20});
