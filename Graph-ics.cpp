@@ -21,6 +21,13 @@ std::vector<Node> convertNode(const std::vector<int>& vertices, const u_int dx, 
     return nodes;
 }
 
+int nodeIndex(const std::vector<Node>& nodes, int id) {
+    for (int i = 0; i < static_cast<int>(nodes.size()); i++) {
+        if (nodes[i].id == id) return i;
+    }
+    return -1;
+}
+
 void applyForces(std::vector<Node>& nodes, const std::vector<Edge>& edges, const float repulsion,
     const float springK, const float springLenMultiplier, const float damping) {
     for (int i = 0; i < nodes.size(); i++) {
@@ -37,14 +44,18 @@ void applyForces(std::vector<Node>& nodes, const std::vector<Edge>& edges, const
     }
 
     for (auto& e : edges) {
-        const float dx = nodes[e.destination].x - nodes[e.source].x;
-        const float dy = nodes[e.destination].y - nodes[e.source].y;
+        const int si = nodeIndex(nodes, e.source);
+        const int di = nodeIndex(nodes, e.destination);
+        if (si < 0 || di < 0) continue;
+        const float dx = nodes[di].x - nodes[si].x;
+        const float dy = nodes[di].y - nodes[si].y;
         const float dist = std::sqrt(dx*dx + dy*dy);
+        if (dist == 0) continue;
         const float force = springK * (dist - springLenMultiplier);
-        nodes[e.source].vx += force * dx / dist;
-        nodes[e.source].vy += force * dy / dist;
-        nodes[e.destination].vx -= force * dx / dist;
-        nodes[e.destination].vy -= force * dy / dist;
+        nodes[si].vx += force * dx / dist;
+        nodes[si].vy += force * dy / dist;
+        nodes[di].vx -= force * dx / dist;
+        nodes[di].vy -= force * dy / dist;
     }
 
     for (auto& n : nodes) {

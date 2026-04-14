@@ -7,17 +7,11 @@
 
 #include "graph.h"
 #include <SFML/Graphics.hpp>
-#include <utility>
+#include "button.h"
 
 struct Node {
     float x,y, vx, vy;
     int id;
-};
-
-struct Button {
-    int id, x, y, w, h;
-    sf::String text;
-    Button(const int id, const int x, const int y, const int w, const int h, sf::String  text) : id(id), x(x), y(y), w(w), h(h), text(std::move(text)){}
 };
 
 inline std::vector<sf::Vector2i> coords = {
@@ -28,6 +22,7 @@ inline std::vector<sf::String> labels = {"Add Edge", "Add Node", "Remove Edge", 
     "Dijkstra", "Breadth\nFirst\nSearch", "Depth\nFirst\nSearch", "Exit"};
 
 std::vector<Node> convertNode(const std::vector<int>& vertices, u_int dx, u_int dy);
+int nodeIndex(const std::vector<Node>& nodes, int id);
 void applyForces(std::vector<Node>& nodes, const std::vector<Edge>& edges, float repulsion,
     float springK, float springLenMultiplier, float damping);
 void createButtons(std::vector<Button>& buttons);

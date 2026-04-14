@@ -21,7 +21,10 @@ add_executable(GraphAlg main.cpp
         Graph-ics.cpp
         Graph-ics.h
         algorithms.cpp
-        algorithms.h)
+        algorithms.h
+        text-window.cpp
+        text-window.h
+        button.h)
 
 target_compile_features(GraphAlg PRIVATE cxx_std_17)
 target_link_libraries(GraphAlg PRIVATE SFML::Graphics)

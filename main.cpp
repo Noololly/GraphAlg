@@ -8,22 +8,38 @@
 
 #include "Graph-ics.h"
 #include "graph.h"
+#include "text-window.h"
 
 #define RADIUS 20.f
 
-void actionClick(const Button* button) {
-    switch (const int id = button->id) {
+void actionClick(const Button* button, graph& graph) {
+    int start, end, weight, vertex;
+    switch (button->id) {
         case 0:
-            //add edge
+            start = entryWindow(entryType::Start);
+            if (start < 0) return;
+            end = entryWindow(entryType::End);
+            if (end < 0) return;
+            weight = entryWindow(entryType::Weight);
+            if (weight < 0) return;
+            graph.addEdge(start, end, weight);
             break;
         case 1:
-            //add node
+            vertex = entryWindow(entryType::Node);
+            if (vertex < 0) return;
+            graph.addVertex(vertex);
             break;
         case 2:
-            //remove edge
+            start = entryWindow(entryType::Start);
+            if (start < 0) return;
+            end = entryWindow(entryType::End);
+            if (end < 0) return;
+            graph.removeEdge(start, end);
             break;
         case 3:
-            //remove node
+            vertex = entryWindow(entryType::Node);
+            if (vertex < 0) return;
+            graph.removeVertex(vertex);
             break;
         case 4:
             //dijkstra
@@ -33,6 +49,7 @@ void actionClick(const Button* button) {
             break;
         case 6:
             //DFS
+            break;
         case 7:
             std::exit(0);
         default:
@@ -68,8 +85,7 @@ int main() {
     sf::Font font;
     const bool hasFont = font.openFromFile("assets/NotoSans.ttf"); // opens the font, saves whether it was successful for later
 
-    const std::vector<int> vertices = g.getVertices();
-    std::vector<Node> nodes = convertNode(vertices, W_WINDOW, H_WINDOW); // convert some integers to Nodes, also randomly generate their coordinates
+    std::vector<Node> nodes = convertNode(g.getVertices(), W_WINDOW, H_WINDOW); // convert some integers to Nodes, also randomly generate their coordinates
     std::vector<Edge> edges = g.getEdges();
     std::vector<Button> buttons;
     createButtons(buttons);
@@ -82,7 +98,7 @@ int main() {
     float repulsion = 8000.f;
 
     Node* draggedNode = nullptr;
-    Button* clickedButton =  nullptr;
+    const Button* clickedButton = nullptr;
 
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
@@ -95,7 +111,7 @@ int main() {
                     window.clear();
                     nodes = {};
                     edges = g.getEdges();
-                    nodes = convertNode(vertices, W_WINDOW, H_WINDOW); // redraw the nodes
+                    nodes = convertNode(g.getVertices(), W_WINDOW, H_WINDOW); // redraw the nodes
                 }
             }
         }
@@ -135,8 +151,10 @@ int main() {
         }
 
         if (clickedButton != nullptr) {
-            actionClick(clickedButton);
+            actionClick(clickedButton, g);
             clickedButton = nullptr; //after we deal with the click, "release" the button
+            edges = g.getEdges();
+            nodes = convertNode(g.getVertices(), W_WINDOW, H_WINDOW);
         }
 
         if (simRunning) applyForces(nodes, edges, repulsion, 0.03f, 150.f, 0.85f);
@@ -150,15 +168,18 @@ int main() {
 
         //draw the edges
         for (const auto&[source, destination, weight] : edges) {
+            const int si = nodeIndex(nodes, source);
+            const int di = nodeIndex(nodes, destination);
+            if (si < 0 || di < 0) continue;
             const sf::Vertex line[] = {
-                sf::Vertex(sf::Vector2f(nodes[source].x, nodes[source].y), sf::Color(150,150,150)),
-                sf::Vertex(sf::Vector2f(nodes[destination].x, nodes[destination].y), sf::Color(150,150,150))
+                sf::Vertex(sf::Vector2f(nodes[si].x, nodes[si].y), sf::Color(150,150,150)),
+                sf::Vertex(sf::Vector2f(nodes[di].x, nodes[di].y), sf::Color(150,150,150))
             };
             window.draw(line, 2, sf::PrimitiveType::Lines);
 
             if (hasFont) {
-                float mx = (nodes[source].x + nodes[destination].x) / 2;
-                float my = (nodes[source].y + nodes[destination].y) / 2;
+                float mx = (nodes[si].x + nodes[di].x) / 2;
+                float my = (nodes[si].y + nodes[di].y) / 2;
                 sf::Text wt(font, std::to_string(weight), 14);
                 wt.setFillColor(sf::Color::Magenta);
                 wt.setPosition({mx, my});

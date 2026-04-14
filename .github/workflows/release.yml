@@ -17,10 +17,10 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact_name: GraphAlg
-            asset_name: GraphAlg-linux-x86_64
+            asset_name: GraphAlg-linux-x86_64.zip
           - os: windows-latest
             artifact_name: GraphAlg.exe
-            asset_name: GraphAlg-windows-x86_64.exe
+            asset_name: GraphAlg-windows-x86_64.zip
 
     steps:
       - name: Checkout
@@ -38,14 +38,21 @@ jobs:
       - name: Build
         run: cmake --build build --config Release
 
-      - name: Rename artifact (Ubuntu)
+      - name: Package (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
-        run: mv build/${{ matrix.artifact_name }} ${{ matrix.asset_name }}
+        run: |
+          mkdir -p package/assets
+          cp build/${{ matrix.artifact_name }} package/
+          cp build/assets/NotoSans.ttf package/assets/
+          cd package && zip -r ../${{ matrix.asset_name }} .
 
-      - name: Rename artifact (Windows)
+      - name: Package (Windows)
         if: matrix.os == 'windows-latest'
         run: |
-          move build\Release\${{ matrix.artifact_name }} ${{ matrix.asset_name }}
+          mkdir package\assets
+          copy build\Release\${{ matrix.artifact_name }} package\
+          copy build\assets\NotoSans.ttf package\assets\
+          cd package && tar -acf ..\${{ matrix.asset_name }} *
         shell: cmd
 
       - name: Upload to Release

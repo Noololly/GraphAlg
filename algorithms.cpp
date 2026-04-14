@@ -13,6 +13,7 @@
 #include "oPQueue.h"
 #include "oQueue.h"
 #include "oStack.h"
+#include "text-window.h"
 
 void algHelper(const graph& g, const int alg) {
     /* This is a nice function that stops my code from repeating as much.
@@ -21,9 +22,10 @@ void algHelper(const graph& g, const int alg) {
      * 1: DFS
      * 2: BFS
      */
-    int start;
-    printf("Start: ");
-    std::cin >> start;
+    const int start = entryWindow(entryType::Start);
+    if (!start) {
+        return;
+    }
     if (alg == 0) {
         int end;
         printf("End: ");
